@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CrioTech – Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --black:   #0a0a0a;
+      --dark:    #141414;
+      --card:    #1a1a1a;
+      --border:  #2a2a2a;
+      --yellow:  #f5c518;
+      --white:   #f0ece4;
+      --muted:   #888;
+      --red:     #e05555;
+      --green:   #4caf7d;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+      --radius: 10px;
+      --t: 0.25s ease;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--black); color: var(--white); font-family: var(--font-body); font-size: 15px; }
+
+    /* HEADER */
+    header {
+      background: var(--dark);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-family: var(--font-display); font-size: 24px; color: var(--yellow); letter-spacing: 2px; }
+    .logo span { color: var(--white); }
+    .header-right { display: flex; gap: 12px; align-items: center; }
+    .back-link {
+      font-size: 13px; color: var(--muted); text-decoration: none;
+      border: 1px solid var(--border); padding: 6px 14px; border-radius: 6px;
+      transition: all var(--t);
+    }
+    .back-link:hover { color: var(--yellow); border-color: var(--yellow); }
+
+    /* LAYOUT */
+    .layout { display: grid; grid-template-columns: 360px 1fr; gap: 0; min-height: calc(100vh - 60px); }
+
+    /* LEVA STRANA – Forma */
+    .panel-left {
+      background: var(--dark);
+      border-right: 1px solid var(--border);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      letter-spacing: 1px;
+      color: var(--yellow);
+    }
+
+    /* Forma */
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color var(--t);
+      width: 100%;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--yellow); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group select option { background: var(--card); }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Dugmad forme */
+    .btn {
+      padding: 11px 20px; border-radius: 8px; font-family: var(--font-body);
+      font-size: 14px; font-weight: 600; cursor: pointer; border: none;
+      transition: all var(--t); display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: var(--yellow); color: var(--black); }
+    .btn-primary:hover { background: #e6b800; transform: translateY(-1px); }
+    .btn-secondary { background: var(--border); color: var(--white); }
+    .btn-secondary:hover { background: #3a3a3a; }
+    .btn-danger { background: var(--red); color: white; }
+    .btn-danger:hover { background: #c94444; }
+    .form-buttons { display: flex; gap: 10px; }
+    .form-buttons .btn { flex: 1; justify-content: center; }
+
+    /* Toast obavestenja */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 20px; border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      z-index: 999; display: none;
+      animation: slideIn 0.3s ease;
+    }
+    .toast-success { background: var(--green); color: white; }
+    .toast-error   { background: var(--red);   color: white; }
+    @keyframes slideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+    /* DESNA STRANA – Tabela */
+    .panel-right { padding: 28px 24px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Traka za pretragu */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--white); font-family: var(--font-body); font-size: 14px;
+      padding: 10px 14px; outline: none; flex: 1; min-width: 160px;
+      transition: border-color var(--t);
+    }
+    .search-input:focus { border-color: var(--yellow); }
+    .search-select {
+      background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--white); font-family: var(--font-body); font-size: 14px;
+      padding: 10px 14px; outline: none; cursor: pointer;
+    }
+
+    /* Tabela */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead { background: var(--card); }
+    thead th {
+      padding: 12px 16px; text-align: left;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background var(--t);
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td { padding: 12px 16px; color: var(--white); vertical-align: middle; }
+
+    .td-name { font-weight: 600; }
+    .td-category {
+      display: inline-block;
+      background: rgba(245,197,24,0.1);
+      color: var(--yellow);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 99px;
+    }
+    .td-price { font-family: var(--font-display); font-size: 18px; color: var(--yellow); }
+    .td-badge {
+      background: var(--yellow); color: var(--black);
+      font-size: 10px; font-weight: 700; padding: 2px 8px;
+      border-radius: 4px; white-space: nowrap;
+    }
+    .td-actions { display: flex; gap: 8px; }
+    .btn-edit   { background: rgba(245,197,24,0.15); color: var(--yellow); border: none; }
+    .btn-edit:hover { background: var(--yellow); color: var(--black); }
+    .btn-del    { background: rgba(224,85,85,0.15); color: var(--red); border: none; }
+    .btn-del:hover { background: var(--red); color: white; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; font-family: var(--font-body); font-weight: 600; transition: all var(--t); }
+
+    .count-badge {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 6px; padding: 6px 14px;
+      font-size: 13px; color: var(--muted);
+    }
+    .count-badge strong { color: var(--yellow); }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--muted);
+    }
+
+    /* Mobilni */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel-left { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Frigo<span>Line</span> <span style="font-size:14px;color:var(--muted);font-family:var(--font-body);font-weight:500;margin-left:8px;">Admin Panel</span></div>
+    <div class="header-right">
+      <a href="/" class="back-link">← Nazad na sajt</a>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- LEVA KOLONA: Forma za dodavanje/uredjivanje -->
+    <div class="panel-left">
+      <div class="panel-title" id="formTitle">Dodaj Proizvod</div>
+
+      <input type="hidden" id="editId"/>
+
+      <div class="form-group">
+        <label>Naziv *</label>
+        <input type="text" id="fName" placeholder="npr. Samsung RS68A 636L"/>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kategorija *</label>
+          <select id="fCategory">
+            <option value="">-- Odaberi --</option>
+            <option value="frižider">Frižider</option>
+            <option value="zamrzivač">Zamrzivač</option>
+            <option value="vitrina">Vitrina</option>
+            <option value="klima">Klima</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Cena (RSD) *</label>
+          <input type="number" id="fPrice" placeholder="95000"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Opis</label>
+        <textarea id="fDesc" placeholder="Kratki opis uređaja..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Badge (opciono)</label>
+        <input type="text" id="fBadge" placeholder="Novo, Akcija..."/>
+      </div>
+
+      <div class="form-group">
+        <label>URL slike (opciono)</label>
+        <input type="text" id="fImg" placeholder="https://..."/>
+      </div>
+
+      <div class="form-buttons">
+        <button class="btn btn-primary" onclick="saveProduct()">Sacuvaj</button>
+        <button class="btn btn-secondary" onclick="resetForm()">Otkazi</button>
+      </div>
+    </div>
+
+    <!-- DESNA KOLONA: Lista proizvoda -->
+    <div class="panel-right">
+
+      <!-- Pretraga i filter -->
+      <div class="search-bar">
+        <input class="search-input" type="text" id="searchInput" placeholder="Pretraži po nazivu..."/>
+        <select class="search-select" id="filterSelect">
+          <option value="">Sve kategorije</option>
+          <option value="frižider">Frižideri</option>
+          <option value="zamrzivač">Zamrzivači</option>
+          <option value="vitrina">Vitrine</option>
+          <option value="klima">Klime</option>
+        </select>
+        <button class="btn btn-secondary" onclick="loadProducts()" style="padding:10px 16px;">Osvezi</button>
+        <div class="count-badge">Ukupno: <strong id="countDisplay">0</strong></div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Naziv</th>
+              <th>Kategorija</th>
+              <th>Cena</th>
+              <th>Badge</th>
+              <th>Akcije</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="6"><div class="empty-state">Ucitavanje...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast obavestenje -->
+  <div id="toast"></div>
+
+  <script>
+    // ================================================
+    // UCITAVANJE PROIZVODA SA API-ja
+    // ================================================
+    async function loadProducts() {
+      const search   = document.getElementById("searchInput").value.trim();
+      const category = document.getElementById("filterSelect").value;
+
+      // Gradimo URL sa query parametrima
+      let url = "/api/products?";
+      if (search)   url += `search=${encodeURIComponent(search)}&`;
+      if (category) url += `category=${encodeURIComponent(category)}`;
+
+      const res  = await fetch(url);
+      const data = await res.json();
+
+      document.getElementById("countDisplay").textContent = data.length;
+      renderTable(data);
+    }
+
+    // ================================================
+    // RENDEROVANJE TABELE
+    // ================================================
+    function renderTable(products) {
+      const tbody = document.getElementById("tableBody");
+
+      if (products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">Nema pronadjenih proizvoda</div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = products.map(p => `
+        <tr>
+          <td style="color:var(--muted)">${p.id}</td>
+          <td class="td-name">${p.name}</td>
+          <td><span class="td-category">${p.category}</span></td>
+          <td class="td-price">${Number(p.price).toLocaleString("sr-RS")}</td>
+          <td>${p.badge ? `<span class="td-badge">${p.badge}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+          <td>
+            <div class="td-actions">
+              <button class="btn btn-sm btn-edit" onclick="editProduct(${p.id})">Uredi</button>
+              <button class="btn btn-sm btn-del"  onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g,"\\'")}')">Obrisi</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    // ================================================
+    // CUVANJE PROIZVODA (dodavanje ili azuriranje)
+    // ================================================
+    async function saveProduct() {
+      const id = document.getElementById("editId").value;
+
+      const body = {
+        name:        document.getElementById("fName").value.trim(),
+        category:    document.getElementById("fCategory").value,
+        description: document.getElementById("fDesc").value.trim(),
+        price:       parseFloat(document.getElementById("fPrice").value),
+        badge:       document.getElementById("fBadge").value.trim() || null,
+        img_url:     document.getElementById("fImg").value.trim(),
+      };
+
+      // Validacija
+      if (!body.name || !body.category || !body.price) {
+        showToast("Naziv, kategorija i cena su obavezni!", "error");
+        return;
+      }
+
+      // POST za novi, PUT za uredjivanje
+      const url    = id ? `/api/products/${id}` : "/api/products";
+      const method = id ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        showToast(id ? "Proizvod azuriran!" : "Proizvod dodat!", "success");
+        resetForm();
+        loadProducts();
+      } else {
+        const err = await res.json();
+        showToast("Greška: " + (err.error || "Nepoznata greška"), "error");
+      }
+    }
+
+    // ================================================
+    // PUNJENJE FORME ZA UREDJIVANJE
+    // ================================================
+    async function editProduct(id) {
+      const res  = await fetch(`/api/products/${id}`);
+      const p    = await res.json();
+
+      document.getElementById("editId").value       = p.id;
+      document.getElementById("fName").value        = p.name;
+      document.getElementById("fCategory").value    = p.category;
+      document.getElementById("fPrice").value       = p.price;
+      document.getElementById("fDesc").value        = p.description || "";
+      document.getElementById("fBadge").value       = p.badge || "";
+      document.getElementById("fImg").value         = p.img_url || "";
+      document.getElementById("formTitle").textContent = `Uredi: ${p.name}`;
+
+      // Skroluj do forme na mobilnom
+      document.querySelector(".panel-left").scrollIntoView({ behavior: "smooth" });
+    }
+
+    // ================================================
+    // BRISANJE PROIZVODA
+    // ================================================
+    async function deleteProduct(id, name) {
+      if (!confirm(`Obrisati "${name}"?`)) return;
+
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+
+      if (res.ok) {
+        showToast("Proizvod obrisan", "success");
+        loadProducts();
+      } else {
+        showToast("Greška pri brisanju", "error");
+      }
+    }
+
+    // ================================================
+    // RESETOVANJE FORME
+    // ================================================
+    function resetForm() {
+      document.getElementById("editId").value      = "";
+      document.getElementById("fName").value       = "";
+      document.getElementById("fCategory").value   = "";
+      document.getElementById("fPrice").value      = "";
+      document.getElementById("fDesc").value       = "";
+      document.getElementById("fBadge").value      = "";
+      document.getElementById("fImg").value        = "";
+      document.getElementById("formTitle").textContent = "Dodaj Proizvod";
+    }
+
+    // ================================================
+    // TOAST OBAVESTENJE
+    // ================================================
+    function showToast(msg, type) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.className = type === "success" ? "toast-success" : "toast-error";
+      t.style.display = "block";
+      setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+
+    // ================================================
+    // PRETRAGA U REALNOM VREMENU (debounce)
+    // ================================================
+    let searchTimer;
+    document.getElementById("searchInput").addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadProducts, 300);
+    });
+    document.getElementById("filterSelect").addEventListener("change", loadProducts);
+
+    // Pocetno ucitavanje
+    loadProducts();
+  </script>
+
+</body>
+</html>
