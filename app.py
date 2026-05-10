@@ -24,7 +24,6 @@ def init_db():
             category    TEXT    NOT NULL,
             description TEXT,
             price       REAL    NOT NULL,
-            badge       TEXT,
             img_url     TEXT,
             created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
         )
@@ -43,9 +42,8 @@ def row_to_dict(row):
         "category":    row[2],
         "description": row[3],
         "price":       row[4],
-        "badge":       row[5],
-        "img_url":     row[6],
-        "created_at":  row[7],
+        "img_url":     row[5],
+        "created_at":  row[6],
     }
 
 
@@ -126,13 +124,12 @@ def add_product():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute(
-        "INSERT INTO products (name, category, description, price, badge, img_url) VALUES (?,?,?,?,?,?)",
+        "INSERT INTO products (name, category, description, price, img_url) VALUES (?,?,?,?,?)",
         (
             data["name"],
             data["category"],
             data.get("description", ""),
             data["price"],
-            data.get("badge"),
             data.get("img_url", ""),
         )
     )
@@ -161,14 +158,13 @@ def update_product(product_id):
 
     c.execute("""
         UPDATE products
-        SET name=?, category=?, description=?, price=?, badge=?, img_url=?
+        SET name=?, category=?, description=?, price=?, img_url=?
         WHERE id=?
     """, (
         data["name"],
         data["category"],
         data.get("description", ""),
         data["price"],
-        data.get("badge"),
         data.get("img_url", ""),
         product_id
     ))
@@ -220,6 +216,6 @@ def index():
 # START
 # ================================================
 if __name__ == "__main__":
-    init_db()   # ← mora biti ovde
+    init_db() 
     print("Server pokrenut: http://localhost:5000")
     app.run(debug=True)

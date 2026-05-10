@@ -165,11 +165,6 @@
       padding: 3px 10px; border-radius: 99px;
     }
     .td-price { font-family: var(--font-display); font-size: 18px; color: var(--yellow); }
-    .td-badge {
-      background: var(--yellow); color: var(--black);
-      font-size: 10px; font-weight: 700; padding: 2px 8px;
-      border-radius: 4px; white-space: nowrap;
-    }
     .td-actions { display: flex; gap: 8px; }
     .btn-edit   { background: rgba(245,197,24,0.15); color: var(--yellow); border: none; }
     .btn-edit:hover { background: var(--yellow); color: var(--black); }
@@ -214,14 +209,14 @@
 
       <div class="form-group">
         <label>Naziv *</label>
-        <input type="text" id="fName" placeholder="npr. Samsung RS68A 636L"/>
+        <input type="text" id="fName" />
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label>Kategorija *</label>
           <select id="fCategory">
-            <option value="">-- Odaberi --</option>
+            <option value=""> Odaberi </option>
             <option value="frižider">Frižider</option>
             <option value="zamrzivač">Zamrzivač</option>
             <option value="vitrina">Vitrina</option>
@@ -230,22 +225,19 @@
         </div>
         <div class="form-group">
           <label>Cena (RSD) *</label>
-          <input type="number" id="fPrice" placeholder="95000"/>
+          <input type="number" id="fPrice" />
         </div>
       </div>
 
       <div class="form-group">
         <label>Opis</label>
-        <textarea id="fDesc" placeholder="Kratki opis uređaja..."></textarea>
+        <textarea id="fDesc" ></textarea>
       </div>
 
-      <div class="form-group">
-        <label>Badge (opciono)</label>
-        <input type="text" id="fBadge" placeholder="Novo, Akcija..."/>
-      </div>
+      
 
       <div class="form-group">
-        <label>URL slike (opciono)</label>
+      <label>Slika  </label>
         <input type="text" id="fImg" placeholder="https://..."/>
       </div>
 
@@ -281,12 +273,11 @@
               <th>Naziv</th>
               <th>Kategorija</th>
               <th>Cena</th>
-              <th>Badge</th>
               <th>Akcije</th>
             </tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="6"><div class="empty-state">Ucitavanje...</div></td></tr>
+            <tr><td colspan="5"><div class="empty-state">Ucitavanje...</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -324,7 +315,7 @@
       const tbody = document.getElementById("tableBody");
 
       if (products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">Nema pronadjenih proizvoda</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">Nema pronadjenih proizvoda</div></td></tr>`;
         return;
       }
 
@@ -334,7 +325,7 @@
           <td class="td-name">${p.name}</td>
           <td><span class="td-category">${p.category}</span></td>
           <td class="td-price">${Number(p.price).toLocaleString("sr-RS")}</td>
-          <td>${p.badge ? `<span class="td-badge">${p.badge}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+
           <td>
             <div class="td-actions">
               <button class="btn btn-sm btn-edit" onclick="editProduct(${p.id})">Uredi</button>
@@ -356,7 +347,6 @@
         category:    document.getElementById("fCategory").value,
         description: document.getElementById("fDesc").value.trim(),
         price:       parseFloat(document.getElementById("fPrice").value),
-        badge:       document.getElementById("fBadge").value.trim() || null,
         img_url:     document.getElementById("fImg").value.trim(),
       };
 
@@ -398,7 +388,6 @@
       document.getElementById("fCategory").value    = p.category;
       document.getElementById("fPrice").value       = p.price;
       document.getElementById("fDesc").value        = p.description || "";
-      document.getElementById("fBadge").value       = p.badge || "";
       document.getElementById("fImg").value         = p.img_url || "";
       document.getElementById("formTitle").textContent = `Uredi: ${p.name}`;
 
@@ -431,7 +420,6 @@
       document.getElementById("fCategory").value   = "";
       document.getElementById("fPrice").value      = "";
       document.getElementById("fDesc").value       = "";
-      document.getElementById("fBadge").value      = "";
       document.getElementById("fImg").value        = "";
       document.getElementById("formTitle").textContent = "Dodaj Proizvod";
     }

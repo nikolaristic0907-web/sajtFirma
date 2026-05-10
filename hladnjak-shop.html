@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CrioTech – Rashladni Uređaji</title>
+  <title>FrigoLine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 
@@ -17,6 +17,7 @@
       --yellow2: #e6b800;
       --white:   #f0ece4;
       --muted:   #888;
+      --red:     #e05555;
       --font-display: 'Bebas Neue', sans-serif;
       --font-body:    'DM Sans', sans-serif;
       --radius: 12px;
@@ -47,6 +48,42 @@
     .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2px; background: var(--yellow); transform: scaleX(0); transition: transform var(--transition); }
     .nav-links a:hover { color: var(--white); }
     .nav-links a:hover::after { transform: scaleX(1); }
+
+    /* KORPA DUGME U NAVU */
+    .cart-btn {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.5px;
+    }
+    .cart-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+    .cart-count {
+      background: var(--yellow);
+      color: var(--black);
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 99px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      transition: transform 0.2s ease;
+    }
+    .cart-count.bump { transform: scale(1.4); }
+
     .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
     .hamburger span { display: block; width: 26px; height: 2px; background: var(--white); border-radius: 2px; transition: var(--transition); }
     .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
@@ -57,6 +94,177 @@
     .mobile-menu a { font-size: 18px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); transition: color var(--transition); }
     .mobile-menu a:hover { color: var(--yellow); }
 
+    /* KORPA SIDEBAR */
+    .cart-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity var(--transition), visibility var(--transition);
+    }
+    .cart-overlay.open { opacity: 1; visibility: visible; }
+
+    .cart-sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 420px;
+      max-width: 100vw;
+      height: 100vh;
+      background: var(--dark);
+      border-left: 1px solid var(--border);
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .cart-sidebar.open { transform: translateX(0); }
+
+    .cart-header {
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .cart-header h2 { font-family: var(--font-display); font-size: 26px; letter-spacing: 1px; color: var(--yellow); }
+    .cart-close {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+    .cart-close:hover { border-color: var(--red); color: var(--red); }
+
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .cart-items::-webkit-scrollbar { width: 4px; }
+    .cart-items::-webkit-scrollbar-track { background: transparent; }
+    .cart-items::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    .cart-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--muted);
+      padding: 40px 0;
+    }
+    .cart-empty-icon { font-size: 48px; opacity: 0.3; }
+    .cart-empty p { font-size: 15px; }
+
+    .cart-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      animation: fadeUp 0.3s ease both;
+    }
+    .cart-item-img {
+      width: 70px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #111;
+    }
+    .cart-item-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .cart-item-name { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cart-item-category { font-size: 11px; color: var(--yellow); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .cart-item-price { font-family: var(--font-display); font-size: 17px; color: var(--yellow); }
+
+    .cart-item-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .qty-controls { display: flex; align-items: center; gap: 6px; }
+    .qty-btn {
+      width: 26px; height: 26px;
+      background: var(--border);
+      border: none;
+      border-radius: 6px;
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background var(--transition);
+    }
+    .qty-btn:hover { background: var(--yellow); color: var(--black); }
+    .qty-num { font-size: 14px; font-weight: 600; min-width: 20px; text-align: center; }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: color var(--transition);
+      font-family: var(--font-body);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    .remove-btn:hover { color: var(--red); }
+
+    .cart-footer {
+      padding: 20px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .cart-summary { display: flex; flex-direction: column; gap: 8px; }
+    .cart-summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--muted); }
+    .cart-summary-row.total { color: var(--white); font-weight: 600; font-size: 15px; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .cart-summary-row.total span:last-child { font-family: var(--font-display); font-size: 24px; color: var(--yellow); }
+    .cart-checkout {
+      background: var(--yellow);
+      color: var(--black);
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px;
+      cursor: pointer;
+      transition: all var(--transition);
+      letter-spacing: 0.5px;
+    }
+    .cart-checkout:hover { background: var(--yellow2); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(245,197,24,0.25); }
+    .cart-clear {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .cart-clear:hover { border-color: var(--red); color: var(--red); }
+
     /* HERO */
     #home { min-height: 90vh; display: flex; align-items: center; padding: 80px 5vw; position: relative; overflow: hidden; }
     #home::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 60px 60px; opacity: 0.3; pointer-events: none; }
@@ -64,7 +272,7 @@
     .hero-content { position: relative; z-index: 1; max-width: 680px; animation: fadeUp 0.8s ease 1.5s both; }
     .hero-badge { display: inline-block; background: var(--yellow); color: var(--black); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 6px 14px; border-radius: 99px; margin-bottom: 24px; }
     .hero-title { font-family: var(--font-display); font-size: clamp(54px, 8vw, 100px); line-height: 0.95; letter-spacing: 2px; color: var(--white); margin-bottom: 24px; }
-    .hero-title em { font-style: normal; color: var(--yellow);  }
+    .hero-title em { font-style: normal; color: var(--yellow); }
     .hero-desc { font-size: 17px; color: var(--muted); max-width: 480px; margin-bottom: 40px; }
     .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
     .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: var(--radius); font-family: var(--font-body); font-size: 14px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; border: none; transition: all var(--transition); }
@@ -82,7 +290,6 @@
     .section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 52px; flex-wrap: wrap; gap: 16px; }
     .section-label { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--yellow); margin-bottom: 10px; }
     .section-title { font-family: var(--font-display); font-size: clamp(34px, 5vw, 56px); letter-spacing: 1px; line-height: 1; }
-
     #featured { background: var(--dark); }
 
     /* GRID */
@@ -94,16 +301,27 @@
     .product-img-wrap { position: relative; aspect-ratio: 4/3; overflow: hidden; background: #111; }
     .product-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; filter: brightness(0.85); }
     .product-card:hover .product-img-wrap img { transform: scale(1.06); filter: brightness(1); }
-    .product-badge { position: absolute; top: 12px; left: 12px; background: var(--yellow); color: var(--black); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; }
-    .product-category-icon { position: absolute; bottom: 12px; right: 12px; font-size: 24px; background: rgba(10,10,10,0.7); border-radius: 8px; padding: 6px 8px; line-height: 1; }
     .product-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
     .product-category { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); }
     .product-name { font-size: 17px; font-weight: 600; color: var(--white); line-height: 1.3; }
     .product-desc { font-size: 13px; color: var(--muted); line-height: 1.5; flex: 1; }
     .product-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
     .product-price { font-family: var(--font-display); font-size: 26px; color: var(--yellow); letter-spacing: 1px; }
-    .btn-cart { background: var(--border); color: var(--white); border: 1px solid transparent; padding: 9px 18px; border-radius: 8px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); }
+    .btn-cart {
+      background: var(--border);
+      color: var(--white);
+      border: 1px solid transparent;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
     .btn-cart:hover { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+    .btn-cart.added { background: rgba(76,175,125,0.15); color: #4caf7d; border-color: #4caf7d; }
 
     /* Skeleton loader */
     .skeleton { background: linear-gradient(90deg, var(--card) 25%, #222 50%, var(--card) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius); }
@@ -113,20 +331,13 @@
     /* DIVIDER */
     .divider { height: 1px; background: linear-gradient(to right, transparent, var(--border), transparent); margin: 0 5vw; }
 
-    /* PROMO */
-    .promo-banner { background: var(--yellow); color: var(--black); padding: 20px 5vw; display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; text-align: center; }
-    .promo-banner p { font-weight: 600; font-size: 15px; letter-spacing: 0.5px; }
-
     /* FILTER */
     .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 36px; align-items: center; }
     .filter-btn { padding: 8px 20px; border-radius: 99px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--transition); }
     .filter-btn:hover, .filter-btn.active { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
-
-    /* Pretraga */
     .search-wrap { flex: 1; max-width: 280px; position: relative; }
-    .search-input { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 99px; color: var(--white); font-family: var(--font-body); font-size: 13px; padding: 8px 18px 8px 36px; outline: none; transition: border-color var(--transition); }
+    .search-input { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 99px; color: var(--white); font-family: var(--font-body); font-size: 13px; padding: 8px 18px; outline: none; transition: border-color var(--transition); }
     .search-input:focus { border-color: var(--yellow); }
-    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
 
     /* KONTAKT */
     #contact { background: var(--dark); }
@@ -176,6 +387,7 @@
       .section-header { flex-direction: column; align-items: flex-start; }
       footer { flex-direction: column; text-align: center; }
       .footer-links { justify-content: center; }
+      .cart-sidebar { width: 100vw; }
     }
     @media (max-width: 480px) {
       .contact-form { padding: 24px 20px; }
@@ -192,20 +404,55 @@
     </div>
   </div>
 
+  <!-- KORPA OVERLAY I SIDEBAR -->
+  <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+  <div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h2>Korpa</h2>
+      <button class="cart-close" onclick="closeCart()">x</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">
+        <div class="cart-empty-icon">[ ]</div>
+        <p>Korpa je prazna</p>
+      </div>
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display:none;">
+      <div class="cart-summary">
+        <div class="cart-summary-row">
+          <span>Broj artikala</span>
+          <span id="cartTotalQty">0</span>
+        </div>
+        <div class="cart-summary-row total">
+          <span>Ukupno</span>
+          <span id="cartTotalPrice">0 RSD</span>
+        </div>
+      </div>
+      <button class="cart-checkout" onclick="checkout()">Posalji upit za narudzbinu</button>
+      <button class="cart-clear" onclick="clearCart()">Ocisti korpu</button>
+    </div>
+  </div>
+
   <nav id="navbar">
     <a href="#home" class="nav-logo">Frigo<span>Line</span></a>
     <ul class="nav-links">
-      <li><a href="#home">Početna</a></li>
+      <li><a href="#home">Pocetna</a></li>
       <li><a href="#featured">Istaknuto</a></li>
       <li><a href="#catalog">Katalog</a></li>
       <li><a href="#contact">Kontakt</a></li>
     </ul>
-    <button class="hamburger" id="hamburger" aria-label="Otvori meni">
-      <span></span><span></span><span></span>
-    </button>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="cart-btn" onclick="openCart()">
+        Korpa
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+      <button class="hamburger" id="hamburger" aria-label="Otvori meni">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </nav>
   <div class="mobile-menu" id="mobileMenu">
-    <a href="#home"     onclick="closeMobileMenu()">Početna</a>
+    <a href="#home"     onclick="closeMobileMenu()">Pocetna</a>
     <a href="#featured" onclick="closeMobileMenu()">Istaknuto</a>
     <a href="#catalog"  onclick="closeMobileMenu()">Katalog</a>
     <a href="#contact"  onclick="closeMobileMenu()">Kontakt</a>
@@ -214,11 +461,11 @@
   <!-- HERO -->
   <section id="home">
     <div class="hero-content">
-      <span class="hero-badge">🇷🇸 Srbija · Ovlašćeni zastupnik</span>
+      <span class="hero-badge">Srbija · Ovlasceni zastupnik</span>
       <h1 class="hero-title">Frigo<em>Line</em></h1>
-      <p class="hero-desc">Profesionalna rešenja za hlađenje – frižideri, zamrzivači, rashladne vitrine i klima uređaji vrhunskih svetskih brendova. Dostava i montaža širom Srbije.</p>
+      <p class="hero-desc">Profesionalna resenja za hladjenje – frizideri, zamrzivaci, rashladne vitrine i klima uredjaji vrhunskih svetskih brendova. Dostava i montaza sirom Srbije.</p>
       <div class="hero-buttons">
-        <a href="#catalog" class="btn btn-primary">Pogledaj katalog →</a>
+        <a href="#catalog" class="btn btn-primary">Pogledaj katalog</a>
         <a href="#contact" class="btn btn-outline">Kontaktiraj nas</a>
       </div>
       <div class="hero-stats">
@@ -229,7 +476,6 @@
     </div>
   </section>
 
-
   <!-- ISTAKNUTI -->
   <section class="section" id="featured">
     <div class="section-header">
@@ -237,10 +483,9 @@
         <p class="section-label">Posebna ponuda</p>
         <h2 class="section-title">Istaknuti Proizvodi</h2>
       </div>
-      <a href="#catalog" class="btn btn-outline">Vidi sve →</a>
+      <a href="#catalog" class="btn btn-outline">Vidi sve</a>
     </div>
     <div class="products-grid" id="featuredGrid">
-      <!-- skeleton -->
       <div class="skeleton skeleton-card"></div>
       <div class="skeleton skeleton-card"></div>
       <div class="skeleton skeleton-card"></div>
@@ -254,24 +499,20 @@
   <section class="section" id="catalog">
     <div class="section-header">
       <div>
-        <p class="section-label">Naša ponuda</p>
+        <p class="section-label">Nasa ponuda</p>
         <h2 class="section-title">Katalog Proizvoda</h2>
       </div>
     </div>
-
     <div class="filter-bar" id="filterBar">
-      <button class="filter-btn active" data-filter="">Svi uređaji</button>
-      <button class="filter-btn" data-filter="frižider">Frižideri</button>
-      <button class="filter-btn" data-filter="zamrzivač">Zamrzivači</button>
+      <button class="filter-btn active" data-filter="">Svi uredjaji</button>
+      <button class="filter-btn" data-filter="frižider">Frizideri</button>
+      <button class="filter-btn" data-filter="zamrzivač">Zamrzivaci</button>
       <button class="filter-btn" data-filter="vitrina">Vitrine</button>
       <button class="filter-btn" data-filter="klima">Klime</button>
-      <!-- Pretraga u filteru -->
       <div class="search-wrap">
-    
-        <input class="search-input" type="text" id="searchInput" placeholder="Pretraži..."/>
+        <input class="search-input" type="text" id="searchInput" placeholder="Pretrazi..."/>
       </div>
     </div>
-
     <div class="products-grid" id="catalogGrid">
       <div class="skeleton skeleton-card"></div>
       <div class="skeleton skeleton-card"></div>
@@ -292,30 +533,30 @@
     </div>
     <div class="contact-grid">
       <div class="contact-info">
-        <p class="contact-info-text">Naš tim stoji na raspolaganju za sva pitanja o odabiru, dostavi i montaži rashladnih uređaja. Odgovaramo u roku od 24 sata.</p>
-        <div class="contact-item"><div class="contact-icon">📞</div><div class="contact-detail"><h4>Telefon</h4><p>+381 34 000 000</p></div></div>
-        <div class="contact-item"><div class="contact-icon">✉️</div><div class="contact-detail"><h4>Email</h4><p>info@criotech.rs</p></div></div>
-        <div class="contact-item"><div class="contact-icon">📍</div><div class="contact-detail"><h4>Adresa</h4><p>Ulica Rashladnih 12, 34000 Kragujevac</p></div></div>
-        <div class="contact-item"><div class="contact-icon">🕐</div><div class="contact-detail"><h4>Radno vreme</h4><p>Pon–Pet: 08:00–17:00<br>Sub: 09:00–13:00</p></div></div>
+   
+        <div class="contact-item"><div class="contact-icon">Tel</div><div class="contact-detail"><h4>Telefon</h4><p>+381 641413045</p></div></div>
+        <div class="contact-item"><div class="contact-icon">@</div><div class="contact-detail"><h4>Email</h4><p>office@frigoline.rs</p></div></div>
+        <div class="contact-item"><div class="contact-icon">Adr</div><div class="contact-detail"><h4>Adresa</h4><p>Gornjomilanovacka 128, 34000 Kragujevac</p></div></div>
+        <div class="contact-item"><div class="contact-icon">Rad</div><div class="contact-detail"><h4>Radno vreme</h4><p>Pon–Pet: 08:00–17:00<br>Sub: 09:00–13:00</p></div></div>
       </div>
       <form class="contact-form" id="contactForm" onsubmit="handleSubmit(event)">
         <div class="form-row">
-          <div class="form-group"><label for="name">Ime i prezime</label><input type="text" id="name" placeholder="Marko Petrović" required/></div>
+          <div class="form-group"><label for="cname">Ime i prezime</label><input type="text" id="cname" placeholder="Marko Petrovic" required/></div>
           <div class="form-group"><label for="email">Email adresa</label><input type="email" id="email" placeholder="marko@email.com" required/></div>
         </div>
-        <div class="form-group"><label for="subject">Naslov poruke</label><input type="text" id="subject" placeholder="Upit za frižider..."/></div>
-        <div class="form-group"><label for="message">Poruka</label><textarea id="message" placeholder="Opišite vaš upit ili zahtev..." required></textarea></div>
-        <div class="form-notice" id="formNotice">✅ Hvala! Vaša poruka je primljena. Kontaktiraćemo vas uskoro.</div>
-        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Pošalji poruku →</button>
+        <div class="form-group"><label for="subject">Naslov poruke</label><input type="text" id="subject" placeholder="Upit za frizider..."/></div>
+        <div class="form-group"><label for="message">Poruka</label><textarea id="message" placeholder="Opisite vas upit ili zahtev..." required></textarea></div>
+        <div class="form-notice" id="formNotice">Hvala! Vasa poruka je primljena. Kontaktirati cemo vas uskoro.</div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Posalji poruku</button>
       </form>
     </div>
   </section>
 
   <footer>
-    <div class="footer-logo">CrioTech</div>
-    <p class="footer-copy">© 2025 CrioTech d.o.o. · Sva prava zadržana</p>
+    <div class="footer-logo">FrigoLine</div>
+    <p class="footer-copy">2025 FrigoLine d.o.o. · Sva prava zadrzana</p>
     <ul class="footer-links">
-      <li><a href="#home">Početna</a></li>
+      <li><a href="#home">Pocetna</a></li>
       <li><a href="#catalog">Katalog</a></li>
       <li><a href="#contact">Kontakt</a></li>
     </ul>
@@ -323,8 +564,142 @@
 
   <script>
     // ================================================
+    // KORPA – stanje
+    // ================================================
+    let cart = {}; // { productId: { product, qty } }
+
+    function openCart() {
+      document.getElementById("cartSidebar").classList.add("open");
+      document.getElementById("cartOverlay").classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeCart() {
+      document.getElementById("cartSidebar").classList.remove("open");
+      document.getElementById("cartOverlay").classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    function addToCart(product) {
+      const id = product.id;
+      if (cart[id]) {
+        cart[id].qty += 1;
+      } else {
+        cart[id] = { product, qty: 1 };
+      }
+      updateCartUI();
+
+      // Animacija na dugmetu
+      const btn = document.querySelector(`.btn-cart[data-id="${id}"]`);
+      if (btn) {
+        btn.textContent = "Dodato";
+        btn.classList.add("added");
+        setTimeout(() => {
+          btn.textContent = "+ Korpa";
+          btn.classList.remove("added");
+        }, 1500);
+      }
+
+      // Bump animacija na broju
+      const countEl = document.getElementById("cartCount");
+      countEl.classList.remove("bump");
+      void countEl.offsetWidth;
+      countEl.classList.add("bump");
+      setTimeout(() => countEl.classList.remove("bump"), 200);
+    }
+
+    function removeFromCart(id) {
+      delete cart[id];
+      updateCartUI();
+    }
+
+    function changeQty(id, delta) {
+      if (!cart[id]) return;
+      cart[id].qty += delta;
+      if (cart[id].qty <= 0) {
+        delete cart[id];
+      }
+      updateCartUI();
+    }
+
+    function clearCart() {
+      cart = {};
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const items = Object.values(cart);
+      const totalQty = items.reduce((s, i) => s + i.qty, 0);
+      const totalPrice = items.reduce((s, i) => s + i.product.price * i.qty, 0);
+
+      // Broj u navigaciji
+      document.getElementById("cartCount").textContent = totalQty;
+
+      // Sadrzaj korpe
+      const cartItemsEl = document.getElementById("cartItems");
+      const cartFooter  = document.getElementById("cartFooter");
+
+      if (items.length === 0) {
+        cartItemsEl.innerHTML = `
+          <div class="cart-empty">
+            <div class="cart-empty-icon">[ ]</div>
+            <p>Korpa je prazna</p>
+          </div>`;
+        cartFooter.style.display = "none";
+        return;
+      }
+
+      cartFooter.style.display = "flex";
+      document.getElementById("cartTotalQty").textContent = totalQty;
+      document.getElementById("cartTotalPrice").textContent =
+        Number(totalPrice).toLocaleString("sr-RS") + " RSD";
+
+      const imgFallback = "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=200&q=60";
+
+      cartItemsEl.innerHTML = items.map(({ product: p, qty }) => `
+        <div class="cart-item">
+          <img class="cart-item-img"
+               src="${p.img_url || imgFallback}"
+               alt="${p.name}"
+               onerror="this.src='${imgFallback}'"/>
+          <div class="cart-item-info">
+            <span class="cart-item-category">${p.category}</span>
+            <span class="cart-item-name">${p.name}</span>
+            <span class="cart-item-price">${Number(p.price * qty).toLocaleString("sr-RS")} RSD</span>
+          </div>
+          <div class="cart-item-controls">
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="changeQty(${p.id}, -1)">-</button>
+              <span class="qty-num">${qty}</span>
+              <button class="qty-btn" onclick="changeQty(${p.id}, +1)">+</button>
+            </div>
+            <button class="remove-btn" onclick="removeFromCart(${p.id})">Ukloni</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function checkout() {
+      const items = Object.values(cart);
+      if (items.length === 0) return;
+
+      // Popuni kontakt formu sa listom proizvoda
+      const lista = items.map(({ product: p, qty }) =>
+        `- ${p.name} x${qty} = ${Number(p.price * qty).toLocaleString("sr-RS")} RSD`
+      ).join("\n");
+
+      const total = items.reduce((s, i) => s + i.product.price * i.qty, 0);
+      const msg = `Zelim da narucim sledece proizvode:\n\n${lista}\n\nUkupno: ${Number(total).toLocaleString("sr-RS")} RSD`;
+
+      document.getElementById("message").value = msg;
+      document.getElementById("subject").value = "Narudzbina sa sajta";
+
+      closeCart();
+      document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
+    }
+
+    // ================================================
     // KREIRANJE KARTICE PROIZVODA
-    // (isti izgled kao pre, ali podaci dolaze iz API-ja)
     // ================================================
     function createCard(p) {
       const imgFallback = "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=600&q=80";
@@ -333,8 +708,6 @@
           <div class="product-img-wrap">
             <img src="${p.img_url || imgFallback}" alt="${p.name}" loading="lazy"
                  onerror="this.src='${imgFallback}'"/>
-            ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
-            <span class="product-category-icon">${p.emoji || '🧊'}</span>
           </div>
           <div class="product-body">
             <span class="product-category">${p.category}</span>
@@ -345,7 +718,10 @@
                 ${Number(p.price).toLocaleString('sr-RS')}
                 <small style="font-size:14px;color:var(--muted);">RSD</small>
               </span>
-              <button class="btn-cart" onclick="addToCart('${p.name.replace(/'/g,"\\'")}')">+ Korpa</button>
+              <button class="btn-cart" data-id="${p.id}"
+                onclick='addToCart(${JSON.stringify(p)})'>
+                + Korpa
+              </button>
             </div>
           </div>
         </div>
@@ -353,23 +729,21 @@
     }
 
     // ================================================
-    // UČITAVANJE SA FLASK API-JA
+    // UCITAVANJE SA FLASK API-JA
     // ================================================
     let currentFilter = "";
     let searchTimer;
 
     async function loadProducts(category = "", search = "") {
-      // Gradimo URL
       let url = "/api/products?";
       if (category) url += `category=${encodeURIComponent(category)}&`;
       if (search)   url += `search=${encodeURIComponent(search)}`;
-
       try {
         const res  = await fetch(url);
         const data = await res.json();
         return data;
       } catch (err) {
-        console.error("API greška:", err);
+        console.error("API greska:", err);
         return [];
       }
     }
@@ -377,10 +751,8 @@
     async function renderFeatured() {
       const data = await loadProducts();
       const grid = document.getElementById("featuredGrid");
-      // Prikaži prvih 4
-      grid.innerHTML = data.slice(0, 4).map(createCard).join("") || "<p style='color:var(--muted)'>Nema proizvoda.</p>";
-
-      // Ažuriraj broj u hero-u
+      grid.innerHTML = data.slice(0, 4).map(createCard).join("") ||
+        "<p style='color:var(--muted)'>Nema proizvoda.</p>";
       document.getElementById("productCount").textContent = data.length + "+";
     }
 
@@ -388,7 +760,8 @@
       const search = document.getElementById("searchInput").value.trim();
       const data   = await loadProducts(currentFilter, search);
       const grid   = document.getElementById("catalogGrid");
-      grid.innerHTML = data.map(createCard).join("") || "<p style='color:var(--muted);padding:40px 0;text-align:center;grid-column:1/-1'>Nema pronađenih proizvoda.</p>";
+      grid.innerHTML = data.map(createCard).join("") ||
+        "<p style='color:var(--muted);padding:40px 0;text-align:center;grid-column:1/-1'>Nema pronadjenih proizvoda.</p>";
     }
 
     // ================================================
@@ -403,29 +776,10 @@
       renderCatalog();
     });
 
-    // Pretraga sa debounce-om (čeka 300ms pre slanja zahteva)
     document.getElementById("searchInput").addEventListener("input", () => {
       clearTimeout(searchTimer);
       searchTimer = setTimeout(renderCatalog, 300);
     });
-
-    // ================================================
-    // KORPA PLACEHOLDER
-    // ================================================
-    function addToCart(name) {
-      const toast = document.createElement("div");
-      toast.style.cssText = `
-        position:fixed; bottom:24px; right:24px;
-        background:var(--yellow); color:var(--black);
-        padding:14px 22px; border-radius:10px;
-        font-family:var(--font-body); font-size:14px; font-weight:600;
-        z-index:9000; box-shadow:0 8px 24px rgba(0,0,0,0.3);
-        animation:fadeUp 0.4s ease; max-width:320px;
-      `;
-      toast.textContent = `🛒 "${name}" dodat u korpu! (Korpa je u izradi)`;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
-    }
 
     // ================================================
     // KONTAKT FORMA
@@ -435,6 +789,8 @@
       const notice = document.getElementById("formNotice");
       notice.style.display = "block";
       e.target.reset();
+      cart = {};
+      updateCartUI();
       setTimeout(() => { notice.style.display = "none"; }, 5000);
     }
 
@@ -461,7 +817,6 @@
       }, 1600);
     });
 
-    // Učitaj podatke sa servera
     renderFeatured();
     renderCatalog();
   </script>
