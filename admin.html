@@ -196,6 +196,7 @@
     <div class="logo">Frigo<span>Line</span> <span style="font-size:14px;color:var(--muted);font-family:var(--font-body);font-weight:500;margin-left:8px;">Admin Panel</span></div>
     <div class="header-right">
       <a href="/" class="back-link">← Nazad na sajt</a>
+      <button class="back-link" id="logoutBtn" onclick="doLogout()" style="cursor:pointer;background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--font-body);font-size:13px;padding:6px 14px;border-radius:6px;transition:all 0.25s ease;">Odjavi se</button>
     </div>
   </header>
 
@@ -281,6 +282,14 @@
   <div id="toast"></div>
 
   <script>
+    // ================================================
+    // ODJAVA
+    // ================================================
+    async function doLogout() {
+      await fetch("/api/logout", { method: "POST" });
+      window.location.href = "/login";
+    }
+
     // ================================================
     // UCITAVANJE KATEGORIJA SA API-ja
     // ================================================

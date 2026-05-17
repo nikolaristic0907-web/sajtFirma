@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FrigoLine – Prijava</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --black:  #0a0a0a;
+      --dark:   #141414;
+      --card:   #1a1a1a;
+      --border: #2a2a2a;
+      --yellow: #f5c518;
+      --white:  #f0ece4;
+      --muted:  #888;
+      --red:    #e05555;
+      --green:  #4caf7d;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+      --t: 0.25s ease;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 15px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--dark);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+    }
+    .logo { font-family: var(--font-display); font-size: 24px; color: var(--yellow); letter-spacing: 2px; }
+    .logo span { color: var(--white); }
+
+    /* GRID POZADINA */
+    .page {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+      position: relative;
+    }
+    .page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.25;
+      pointer-events: none;
+    }
+    .page::after {
+      content: '';
+      position: absolute;
+      top: -10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(245,197,24,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* KARTICA */
+    .card {
+      background: var(--dark);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 32px;
+      letter-spacing: 2px;
+      color: var(--yellow);
+      margin-bottom: 6px;
+    }
+    .card-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+
+    /* FORMA */
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+    .form-group label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+    .form-group input {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color var(--t);
+      width: 100%;
+    }
+    .form-group input:focus { border-color: var(--yellow); }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: var(--yellow);
+      color: var(--black);
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--t);
+      margin-top: 8px;
+      letter-spacing: 0.5px;
+    }
+    .btn-login:hover { background: #e6b800; transform: translateY(-1px); }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* Greška */
+    .error-box {
+      background: rgba(224, 85, 85, 0.1);
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--red);
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    /* Link nazad */
+    .back {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .back a {
+      color: var(--yellow);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .back a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Frigo<span>Line</span></div>
+  </header>
+
+  <div class="page">
+    <div class="card">
+      <div class="card-title">Prijava</div>
+      <div class="card-sub">Pristup admin panelu</div>
+
+      <div class="error-box" id="errorBox"></div>
+
+      <div class="form-group">
+        <label>Korisnicko ime</label>
+        <input type="text" id="username" placeholder="admin" autocomplete="username"/>
+      </div>
+
+      <div class="form-group">
+        <label>Lozinka</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+
+      <button class="btn-login" id="loginBtn" onclick="doLogin()">Prijavi se</button>
+
+      <div class="back"><a href="/">← Nazad na sajt</a></div>
+    </div>
+  </div>
+
+  <script>
+    // Prijava na Enter
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") doLogin();
+    });
+
+    async function doLogin() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const btn      = document.getElementById("loginBtn");
+      const errorBox = document.getElementById("errorBox");
+
+      errorBox.style.display = "none";
+
+      if (!username || !password) {
+        showError("Unesite korisnicko ime i lozinku.");
+        return;
+      }
+
+      btn.disabled    = true;
+      btn.textContent = "Prijavljivanje...";
+
+      try {
+        const res  = await fetch("/api/login", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          window.location.href = "/admin";
+        } else {
+          showError(data.error || "Greska pri prijavi.");
+          btn.disabled    = false;
+          btn.textContent = "Prijavi se";
+        }
+      } catch (err) {
+        showError("Greska pri povezivanju sa serverom.");
+        btn.disabled    = false;
+        btn.textContent = "Prijavi se";
+      }
+    }
+
+    function showError(msg) {
+      const box = document.getElementById("errorBox");
+      box.textContent    = msg;
+      box.style.display  = "block";
+    }
+  </script>
+
+</body>
+</html>

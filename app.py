@@ -3,16 +3,33 @@
 # Pokreni sa: python app.py
 # ================================================
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session, redirect, url_for, Response
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key = "d5fa48c0c9678317fd795c4d10011ce0a61ae32f6935fb7e07b0d72e6ed990d9"
 DB_PATH = "products.db"
 
+
+# ═══════════════════════════════════════════════
+# INICIJALIZACIJA BAZE
+# ═══════════════════════════════════════════════
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+
+    # Tabela korisnika
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            username      TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
     # Tabela kategorija
     c.execute("""
@@ -23,7 +40,6 @@ def init_db():
         )
     """)
 
-    # Ubaci podrazumevane kategorije ako tabela prazna
     c.execute("SELECT COUNT(*) FROM categories")
     if c.fetchone()[0] == 0:
         default_cats = [
@@ -34,7 +50,7 @@ def init_db():
         ]
         c.executemany("INSERT OR IGNORE INTO categories (name, label) VALUES (?,?)", default_cats)
 
-    # Tabela proizvoda (bez emoji i badge)
+    # Tabela proizvoda
     c.execute("""
         CREATE TABLE IF NOT EXISTS products (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,10 +63,9 @@ def init_db():
         )
     """)
 
-    # ── Migracija: ukloni emoji/badge kolone ako postoje ─────────────────────
+    # Migracija: ukloni emoji/badge kolone ako postoje
     c.execute("PRAGMA table_info(products)")
     cols = {row[1] for row in c.fetchall()}
-
     if "emoji" in cols or "badge" in cols:
         c.execute("ALTER TABLE products RENAME TO products_old")
         c.execute("""
@@ -76,6 +91,10 @@ def init_db():
     conn.close()
 
 
+# ═══════════════════════════════════════════════
+# POMOCNE FUNKCIJE
+# ═══════════════════════════════════════════════
+
 def row_to_dict(row):
     return {
         "id":          row[0],
@@ -86,6 +105,57 @@ def row_to_dict(row):
         "img_url":     row[5],
         "created_at":  row[6],
     }
+
+def login_required(f):
+    """Dekorator – preusmeri na /login ako korisnik nije ulogovan"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("user_id"):
+            return redirect(url_for("login_page"))
+        return f(*args, **kwargs)
+    return decorated
+
+
+# ═══════════════════════════════════════════════
+# AUTH – stranice i API
+# ═══════════════════════════════════════════════
+
+@app.route("/login")
+def login_page():
+    # Ako je vec ulogovan, idi direktno na admin
+    if session.get("user_id"):
+        return redirect(url_for("admin"))
+    with open("login.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.route("/api/login", methods=["POST"])
+def api_login():
+    data     = request.get_json()
+    username = (data.get("username") or "").strip()
+    password = (data.get("password") or "")
+
+    if not username or not password:
+        return jsonify({"error": "Korisnicko ime i lozinka su obavezni"}), 400
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT id, username, password_hash FROM users WHERE username = ?", (username,))
+    user = c.fetchone()
+    conn.close()
+
+    if user is None or not check_password_hash(user[2], password):
+        return jsonify({"error": "Pogresno korisnicko ime ili lozinka"}), 401
+
+    session["user_id"]  = user[0]
+    session["username"] = user[1]
+    return jsonify({"message": "Uspesna prijava", "username": user[1]})
+
+
+@app.route("/api/logout", methods=["POST"])
+def api_logout():
+    session.clear()
+    return jsonify({"message": "Odjavljen"})
 
 
 # ═══════════════════════════════════════════════
@@ -103,6 +173,7 @@ def get_categories():
 
 
 @app.route("/api/categories", methods=["POST"])
+@login_required
 def add_category():
     data  = request.get_json()
     name  = (data.get("name")  or "").strip()
@@ -122,6 +193,7 @@ def add_category():
 
 
 @app.route("/api/categories/<int:cat_id>", methods=["DELETE"])
+@login_required
 def delete_category(cat_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -185,6 +257,7 @@ def get_product(product_id):
 
 
 @app.route("/api/products", methods=["POST"])
+@login_required
 def add_product():
     data = request.get_json()
     for field in ["name", "category", "price"]:
@@ -204,6 +277,7 @@ def add_product():
 
 
 @app.route("/api/products/<int:product_id>", methods=["PUT"])
+@login_required
 def update_product(product_id):
     data = request.get_json()
     conn = sqlite3.connect(DB_PATH)
@@ -223,6 +297,7 @@ def update_product(product_id):
 
 
 @app.route("/api/products/<int:product_id>", methods=["DELETE"])
+@login_required
 def delete_product(product_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -241,6 +316,7 @@ def delete_product(product_id):
 # ═══════════════════════════════════════════════
 
 @app.route("/admin")
+@login_required
 def admin():
     with open("admin.html", "r", encoding="utf-8") as f:
         return f.read()
