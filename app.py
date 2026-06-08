@@ -5,6 +5,9 @@
 
 from flask import Flask, request, jsonify, session, redirect, url_for, Response
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# Uvek koristi pbkdf2:sha256 – radi na svim serverima bez OpenSSL scrypt podrske
+HASH_METHOD = "pbkdf2:sha256"
 from functools import wraps
 import sqlite3
 
@@ -146,6 +149,15 @@ def api_login():
 
     if user is None or not check_password_hash(user[2], password):
         return jsonify({"error": "Pogresno korisnicko ime ili lozinka"}), 401
+
+    # Ako je hash scrypt (stari format), automatski rehashuj na pbkdf2
+    if user[2].startswith("scrypt:"):
+        new_hash = generate_password_hash(password, method=HASH_METHOD)
+        conn2 = sqlite3.connect(DB_PATH)
+        c2 = conn2.cursor()
+        c2.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user[0]))
+        conn2.commit()
+        conn2.close()
 
     session["user_id"]  = user[0]
     session["username"] = user[1]

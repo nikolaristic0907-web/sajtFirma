@@ -290,7 +290,7 @@
     .section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 52px; flex-wrap: wrap; gap: 16px; }
     .section-label { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--yellow); margin-bottom: 10px; }
     .section-title { font-family: var(--font-display); font-size: clamp(34px, 5vw, 56px); letter-spacing: 1px; line-height: 1; }
-    #featured { background: var(--dark); }
+
 
     /* GRID */
     .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
@@ -437,7 +437,7 @@
     <a href="#home" class="nav-logo">Frigo<span>Line</span></a>
     <ul class="nav-links">
       <li><a href="#home">Pocetna</a></li>
-      <li><a href="#featured">Istaknuto</a></li>
+
       <li><a href="#catalog">Katalog</a></li>
       <li><a href="#contact">Kontakt</a></li>
     </ul>
@@ -453,7 +453,7 @@
   </nav>
   <div class="mobile-menu" id="mobileMenu">
     <a href="#home"     onclick="closeMobileMenu()">Pocetna</a>
-    <a href="#featured" onclick="closeMobileMenu()">Istaknuto</a>
+
     <a href="#catalog"  onclick="closeMobileMenu()">Katalog</a>
     <a href="#contact"  onclick="closeMobileMenu()">Kontakt</a>
   </div>
@@ -470,30 +470,11 @@
       </div>
       <div class="hero-stats">
         <div class="stat"><span class="stat-num">12+</span><span class="stat-label">Godina iskustva</span></div>
-        <div class="stat"><span class="stat-num">800+</span><span class="stat-label">Zadovoljnih kupaca</span></div>
+        <div class="stat"><span class="stat-num">150+</span><span class="stat-label">Zadovoljnih kupaca</span></div>
         <div class="stat"><span class="stat-num" id="productCount">...</span><span class="stat-label">Modela na stanju</span></div>
       </div>
     </div>
   </section>
-
-  <!-- ISTAKNUTI -->
-  <section class="section" id="featured">
-    <div class="section-header">
-      <div>
-        <p class="section-label">Posebna ponuda</p>
-        <h2 class="section-title">Istaknuti Proizvodi</h2>
-      </div>
-      <a href="#catalog" class="btn btn-outline">Vidi sve</a>
-    </div>
-    <div class="products-grid" id="featuredGrid">
-      <div class="skeleton skeleton-card"></div>
-      <div class="skeleton skeleton-card"></div>
-      <div class="skeleton skeleton-card"></div>
-      <div class="skeleton skeleton-card"></div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
 
   <!-- KATALOG -->
   <section class="section" id="catalog">
@@ -767,17 +748,10 @@
       }
     }
 
-    async function renderFeatured() {
-      const data = await loadProducts();
-      const grid = document.getElementById("featuredGrid");
-      grid.innerHTML = data.slice(0, 4).map(createCard).join("") ||
-        "<p style='color:var(--muted)'>Nema proizvoda.</p>";
-      document.getElementById("productCount").textContent = data.length + "+";
-    }
-
     async function renderCatalog() {
       const search = document.getElementById("searchInput").value.trim();
       const data   = await loadProducts(currentFilter, search);
+      document.getElementById("productCount").textContent = data.length + "+";
       const grid   = document.getElementById("catalogGrid");
       grid.innerHTML = data.map(createCard).join("") ||
         "<p style='color:var(--muted);padding:40px 0;text-align:center;grid-column:1/-1'>Nema pronadjenih proizvoda.</p>";
@@ -836,7 +810,6 @@
       }, 1600);
     });
 
-    renderFeatured();
     renderCatalog();
     loadCategories();
   </script>

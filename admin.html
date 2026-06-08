@@ -183,6 +183,24 @@
       text-align: center; padding: 60px 20px; color: var(--muted);
     }
 
+    /* Upload area */
+    .upload-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--card);
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      cursor: pointer;
+      transition: all var(--t);
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .upload-area:hover { border-color: var(--yellow); color: var(--yellow); }
+    .upload-area.has-file { border-color: var(--green); color: var(--green); border-style: solid; }
+
     /* Mobilni */
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
@@ -222,7 +240,18 @@
         </div>
         <div class="form-group">
           <label>Cena (RSD) *</label>
-          <input type="number" id="fPrice" />
+          <input type="number" id="fPrice" min="0" max="10000000" placeholder="0 – 10.000.000"
+            oninput="
+              const v = parseFloat(this.value);
+              if (this.value !== '' && (isNaN(v) || v < 0 || v > 10000000)) {
+                this.style.borderColor = 'var(--red)';
+                document.getElementById('priceError').style.display = 'block';
+              } else {
+                this.style.borderColor = '';
+                document.getElementById('priceError').style.display = 'none';
+              }
+            "/><br>
+          <span id="priceError" style="display:none;color:var(--red);font-size:12px;margin-top:4px;">Cena mora biti između 0 i 10.000.000 RSD</span>
         </div>
       </div>
 
@@ -234,8 +263,19 @@
       
 
       <div class="form-group">
-      <label>Slika  </label>
-        <input type="text" id="fImg" placeholder="https://..."/>
+        <label>Slika</label>
+        <!-- Upload dugme -->
+        <label class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+          <span id="uploadLabel">📁 Klikni da izabereš sliku</span>
+          <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileUpload(event)"/>
+        </label>
+        <!-- Preview -->
+        <div id="imgPreviewWrap" style="display:none; margin-top:8px;">
+          <img id="imgPreview" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--card);padding:4px;"/>
+          <button type="button" onclick="clearImage()" style="margin-top:6px;width:100%;padding:6px;background:rgba(224,85,85,0.15);color:var(--red);border:1px solid rgba(224,85,85,0.3);border-radius:6px;cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:600;">✕ Ukloni sliku</button>
+        </div>
+        <!-- URL fallback -->
+        <input type="text" id="fImg" placeholder="ili unesi URL slike..." style="margin-top:8px;" oninput="handleUrlInput(this.value)"/>
       </div>
 
       <div class="form-buttons">
@@ -282,6 +322,64 @@
   <div id="toast"></div>
 
   <script>
+    // ================================================
+    // IMAGE UPLOAD (base64)
+    // ================================================
+    let uploadedBase64 = "";
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Max 2MB
+      if (file.size > 2 * 1024 * 1024) {
+        showToast("Slika je prevelika (max 2MB)", "error");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        uploadedBase64 = e.target.result; // data:image/...;base64,...
+        document.getElementById("fImg").value = "";
+        showImagePreview(uploadedBase64);
+        document.getElementById("uploadLabel").textContent = "✓ " + file.name;
+        document.getElementById("uploadArea").classList.add("has-file");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleUrlInput(url) {
+      if (url.trim()) {
+        uploadedBase64 = "";
+        document.getElementById("uploadLabel").textContent = "📁 Klikni da izabereš sliku";
+        document.getElementById("uploadArea").classList.remove("has-file");
+        showImagePreview(url.trim());
+      } else {
+        hideImagePreview();
+      }
+    }
+
+    function showImagePreview(src) {
+      const wrap = document.getElementById("imgPreviewWrap");
+      const img  = document.getElementById("imgPreview");
+      img.src = src;
+      wrap.style.display = "block";
+    }
+
+    function hideImagePreview() {
+      document.getElementById("imgPreviewWrap").style.display = "none";
+      document.getElementById("imgPreview").src = "";
+    }
+
+    function clearImage() {
+      uploadedBase64 = "";
+      document.getElementById("fImg").value = "";
+      document.getElementById("fileInput").value = "";
+      document.getElementById("uploadLabel").textContent = "📁 Klikni da izabereš sliku";
+      document.getElementById("uploadArea").classList.remove("has-file");
+      hideImagePreview();
+    }
+
     // ================================================
     // ODJAVA
     // ================================================
@@ -361,12 +459,18 @@
     async function saveProduct() {
       const id = document.getElementById("editId").value;
 
+      const rawPrice = parseFloat(document.getElementById("fPrice").value);
+      if (isNaN(rawPrice) || rawPrice < 0 || rawPrice > 10000000) {
+        showToast("Cena mora biti između 0 i 10.000.000 RSD!", "error");
+        return;
+      }
+
       const body = {
         name:        document.getElementById("fName").value.trim(),
         category:    document.getElementById("fCategory").value,
         description: document.getElementById("fDesc").value.trim(),
-        price:       parseFloat(document.getElementById("fPrice").value),
-        img_url:     document.getElementById("fImg").value.trim(),
+        price:       rawPrice,
+        img_url:     uploadedBase64 || document.getElementById("fImg").value.trim(),
       };
 
       // Validacija
@@ -407,7 +511,14 @@
       document.getElementById("fCategory").value    = p.category;
       document.getElementById("fPrice").value       = p.price;
       document.getElementById("fDesc").value        = p.description || "";
-      document.getElementById("fImg").value         = p.img_url || "";
+      // Slika
+      uploadedBase64 = "";
+      const imgVal = p.img_url || "";
+      document.getElementById("fImg").value = imgVal.startsWith("data:") ? "" : imgVal;
+      if (imgVal) {
+        if (imgVal.startsWith("data:")) { uploadedBase64 = imgVal; document.getElementById("uploadArea").classList.add("has-file"); document.getElementById("uploadLabel").textContent = "✓ Uploadovana slika"; }
+        showImagePreview(imgVal);
+      } else { hideImagePreview(); }
       document.getElementById("formTitle").textContent = `Uredi: ${p.name}`;
 
       // Skroluj do forme na mobilnom
@@ -439,7 +550,7 @@
       document.getElementById("fCategory").value   = "";
       document.getElementById("fPrice").value      = "";
       document.getElementById("fDesc").value       = "";
-      document.getElementById("fImg").value        = "";
+      clearImage();
       document.getElementById("formTitle").textContent = "Dodaj Proizvod";
     }
 

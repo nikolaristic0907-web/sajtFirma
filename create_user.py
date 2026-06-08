@@ -7,6 +7,7 @@ import sqlite3
 from werkzeug.security import generate_password_hash
 
 DB_PATH = "products.db"
+HASH_METHOD = "pbkdf2:sha256"
 
 def create_user():
     print("=== Kreiranje novog korisnika ===\n")
@@ -21,7 +22,7 @@ def create_user():
         print("Greska: lozinka mora imati najmanje 6 karaktera.")
         return
 
-    password_hash = generate_password_hash(password)
+    password_hash = generate_password_hash(password, method=HASH_METHOD)
 
     try:
         conn = sqlite3.connect(DB_PATH)
